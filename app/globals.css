@@ -5,11 +5,12 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+    --color-brand-green: #81C995;
+    --color-brand-dark: #333333;
+    --color-brand-gray-light: #f8f9fa;
+    --color-brand-gray-medium: #e9ecef;
+    --color-brand-gray-dark: #6c757d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +21,31 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    @apply w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-colors bg-white;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    @apply border-brand-green outline-none ring-2 ring-green-200/70;
+}
+
+/* Green radios / checkboxes */
+input[type="radio"],
+input[type="checkbox"] {
+    accent-color: #81C995;
 }
