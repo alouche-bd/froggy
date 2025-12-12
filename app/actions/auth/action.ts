@@ -16,7 +16,21 @@ export async function registerAction(
     formData: FormData,
 ): Promise<AuthState> {
     try {
-        const input: RegisterInput = {
+        const input: {
+            email: string;
+            password: string;
+            confirmPassword: string;
+            firstName: string;
+            lastName: string;
+            professionalAddress: string;
+            postalCode: string;
+            city: string;
+            specialty: string;
+            siret: string;
+            usedFroggymouth: "yes" | "no";
+            training: "done" | "commit";
+            terms: string
+        } = {
             email: String(formData.get("email") ?? ""),
             password: String(formData.get("password") ?? ""),
             confirmPassword: String(formData.get("confirmPassword") ?? ""),

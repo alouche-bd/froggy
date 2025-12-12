@@ -59,7 +59,21 @@ async function createSession(userId: string) {
     });
 }
 
-export async function registerUser(input: RegisterInput) {
+export async function registerUser(input: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+    firstName: string;
+    lastName: string;
+    professionalAddress: string;
+    postalCode: string;
+    city: string;
+    specialty: string;
+    siret: string;
+    usedFroggymouth: "yes" | "no";
+    training: "done" | "commit";
+    terms: string
+}) {
     const data = registerSchema.parse(input);
 
     const existing = await prisma.user.findUnique({

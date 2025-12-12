@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import {useState, useEffect, useActionState} from "react";
+import {useState, useEffect, useActionState, FormEvent} from "react";
 import { resetPasswordAction, type AuthState } from "@/app/actions/auth/action";
 
 function SubmitButton() {
