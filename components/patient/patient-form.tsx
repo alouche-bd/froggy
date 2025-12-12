@@ -34,7 +34,6 @@ export function PatientForm({ token }: Props) {
                 Complétez les informations ci-dessous pour recevoir votre dispositif.
             </p>
 
-            {/* Infos perso */}
             <div id="personal-info" className="space-y-4">
                 <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -89,9 +88,7 @@ export function PatientForm({ token }: Props) {
                 </div>
             </div>
 
-            {/* Options taille / livraison */}
             <div id="options-section" className="space-y-6 pt-4">
-                {/* Taille */}
                 <div id="size-choice">
                     <label className="text-sm font-medium text-gray-700">
                         Choix de la taille <span className="text-red-500">*</span>
@@ -128,7 +125,6 @@ export function PatientForm({ token }: Props) {
                     </div>
                 </div>
 
-                {/* Livraison */}
                 <div id="delivery-choice">
                     <label className="text-sm font-medium text-gray-700">
                         Choisissez le mode de livraison{" "}
@@ -162,7 +158,6 @@ export function PatientForm({ token }: Props) {
                 </div>
             </div>
 
-            {/* Adresse postale */}
             <div id="address-section" className="space-y-4 pt-4">
                 <label className="text-sm font-medium text-gray-700">
                     Adresse postale

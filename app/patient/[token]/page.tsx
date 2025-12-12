@@ -39,7 +39,6 @@ export default async function PatientIntakePage({
     return (
         <main className="bg-brand-gray text-brand-text">
             <div className="flex min-h-[900px] w-full flex-col items-center">
-                {/* Navbar is already rendered from layout.tsx, so we only render the page content here */}
                 <section
                     id="main-content"
                     className="flex w-full flex-grow items-center justify-center py-12 px-4 sm:px-6 lg:px-8"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import {FormEvent, useState} from "react";
 import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -29,7 +29,7 @@ export function RegisterForm() {
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [clientError, setClientError] = useState<string | null>(null);
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         setClientError(null);
 
         const form = event.currentTarget;
@@ -39,21 +39,16 @@ export function RegisterForm() {
         const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
         if (password.length < 8) {
-            // ❌ front error → block submission (no pending)
             event.preventDefault();
             setClientError("Le mot de passe doit contenir au moins 8 caractères.");
             return;
         }
 
         if (password !== confirmPassword) {
-            // ❌ front error → block submission (no pending)
             event.preventDefault();
             setClientError("Les mots de passe ne correspondent pas.");
             return;
         }
-
-        // ✅ no preventDefault => React will run `formAction` via the `action` prop
-        // and manage pending correctly. We don't call formAction() manually.
     };
 
     return (
@@ -72,14 +67,13 @@ export function RegisterForm() {
                     </p>
                 </div>
 
-                {/* FORM */}
                 <form
                     id="registration-form"
-                    action={formAction}        // ✅ React/Next will call the server action
-                    onSubmit={handleSubmit}   // ✅ we only preventDefault on front errors
+                    action={formAction}
+                    onSubmit={handleSubmit}
                     className="space-y-10"
                 >
-                    {/* 1. Compte pro */}
+
                     <section id="step-1-account" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             1. Créer votre compte professionnel
@@ -101,7 +95,6 @@ export function RegisterForm() {
                                 />
                             </div>
 
-                            {/* Mot de passe avec eye icon */}
                             <div>
                                 <label
                                     htmlFor="password"
@@ -137,7 +130,6 @@ export function RegisterForm() {
                                 </p>
                             </div>
 
-                            {/* Confirmation mot de passe avec eye icon */}
                             <div>
                                 <label
                                     htmlFor="confirm-password"
@@ -177,7 +169,6 @@ export function RegisterForm() {
                         </div>
                     </section>
 
-                    {/* 2. Infos pro */}
                     <section id="step-2-professional-info" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             2. Renseignez vos informations professionnelles
@@ -232,7 +223,6 @@ export function RegisterForm() {
                                 />
                             </div>
 
-                            {/* Code postal + Ville */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label
@@ -266,7 +256,6 @@ export function RegisterForm() {
                                 </div>
                             </div>
 
-                            {/* Spécialité as select */}
                             <div>
                                 <label
                                     htmlFor="specialty"
@@ -288,7 +277,6 @@ export function RegisterForm() {
                                 </select>
                             </div>
 
-                            {/* ADELI / SIRET */}
                             <div>
                                 <label
                                     htmlFor="siret"
@@ -306,7 +294,6 @@ export function RegisterForm() {
                                 />
                             </div>
 
-                            {/* Froggymouth déjà utilisé ? */}
                             <div className="flex flex-col space-y-2 pt-2 md:flex-row md:items-center md:space-y-0 md:space-x-6">
                                 <p className="text-sm text-gray-700">
                                     Avez-vous déjà utilisé le Froggymouth ?{" "}
@@ -343,7 +330,6 @@ export function RegisterForm() {
                         </div>
                     </section>
 
-                    {/* 3. Conditions */}
                     <section id="step-3-conditions" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             3. Acceptez les conditions générales
@@ -357,13 +343,20 @@ export function RegisterForm() {
                                 required
                             />
                             <label htmlFor="terms" className="text-gray-700 text-sm">
-                                J&apos;accepte les conditions générales d&apos;utilisation{" "}
+                                J&apos;accepte les{" "}
+                                <a
+                                    href={process.env.NEXT_PUBLIC_CDN_URL + 'cgv.pdf'}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-brand-green underline hover:no-underline"
+                                >
+                                    conditions générales d'utilisation
+                                </a>{" "}
                                 <span className="text-red-500">*</span>
                             </label>
                         </div>
                     </section>
 
-                    {/* 4. Formation */}
                     <section id="step-4-training" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             4. Formation prescripteur <span className="text-red-500">*</span>
@@ -405,7 +398,6 @@ export function RegisterForm() {
                         </div>
                     </section>
 
-                    {/* 5. Accès */}
                     <section id="step-5-access" className="space-y-3">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             5. Accédez à votre page personnalisée
@@ -421,14 +413,12 @@ export function RegisterForm() {
                         </div>
                     </section>
 
-                    {/* Errors: client OR API */}
                     {(clientError || state.error) && (
                         <p className="text-center text-xs text-red-500">
                             {clientError ?? state.error}
                         </p>
                     )}
 
-                    {/* Submit */}
                     <div id="form-submit" className="pt-6 text-center">
                         <SubmitButton />
                     </div>

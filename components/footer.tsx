@@ -47,12 +47,12 @@ export async function Footer() {
                         >
                             Mentions Légales
                         </Link>
-                        <Link
-                            href="#"
+                        <a
+                            href={process.env.NEXT_PUBLIC_CDN_URL + 'politique.pdf'}
                             className="text-sm text-gray-300 transition-colors duration-300 hover:text-brand-green"
                         >
                             Politique de Confidentialité
-                        </Link>
+                        </a>
                     </div>
                 </div>
 

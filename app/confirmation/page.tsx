@@ -1,6 +1,7 @@
 import { stripe } from "@/lib/stripe";
 import { getBrandConfig } from "@/lib/brand";
 import prisma from "@/lib/prisma";
+import {formatDate} from "@/components/orders-table";
 
 export const runtime = "nodejs";
 
@@ -77,7 +78,7 @@ export default async function ConfirmationPage({
                   <span className="font-semibold">
                     Date de la commande :
                   </span>{" "}
-                                    {createdAt || "XX.XX.XXXX"}
+                                    {formatDate(createdAt) || "XX.XX.XXXX"}
                                 </li>
                                 <li>
                   <span className="font-semibold">
