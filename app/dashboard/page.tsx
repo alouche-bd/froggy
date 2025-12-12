@@ -19,8 +19,9 @@ export default async function DashboardPage() {
 
     const doctorName =
         user.lastName || user.firstName
-            ? `${user.lastName ?? ""}`.trim()
-            : "Martin";
+            ? `${(user.firstName ?? "").trim()} ${(user.lastName ?? "").trim()}`.trim()
+            : "";
+
 
     return (
         <main className="bg-brand-gray-light text-gray-800">
@@ -31,7 +32,7 @@ export default async function DashboardPage() {
                     className="mb-12 text-center"
                 >
                     <h1 className="mb-3 text-4xl capitalize font-medium text-brand-green">
-                        Bienvenue Dr. {doctorName} !
+                        Bienvenue {doctorName} !
                     </h1>
                     <p className="text-gray-700 font-medium">
                         Voici les outils à votre disposition pour prescrire{" "}

@@ -4,7 +4,8 @@ import { loginUser, registerUser, type LoginInput, type RegisterInput } from '@/
 import {redirect} from "next/navigation";
 import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
-import toast from "react-hot-toast";
+import bcrypt from "bcryptjs";
+import {requestPasswordReset, resetPassword} from "@/lib/password-reset";
 
 export type AuthState = { ok?: boolean; error?: string };
 
@@ -16,21 +17,34 @@ export async function registerAction(
 ): Promise<AuthState> {
     try {
         const input: RegisterInput = {
-            email: String(formData.get('email') ?? ''),
-            password: String(formData.get('password') ?? ''),
-            confirmPassword: String(formData.get('confirmPassword') ?? ''),
-            firstName: String(formData.get('firstName') ?? ''),
-            lastName: String(formData.get('lastName') ?? ''),
+            email: String(formData.get("email") ?? ""),
+            password: String(formData.get("password") ?? ""),
+            confirmPassword: String(formData.get("confirmPassword") ?? ""),
+            firstName: String(formData.get("firstName") ?? ""),
+            lastName: String(formData.get("lastName") ?? ""),
+
+            professionalAddress: String(
+                formData.get("professional-address") ?? ""
+            ),
+            postalCode: String(formData.get("postalCode") ?? ""),
+            city: String(formData.get("city") ?? ""),
+            specialty: String(formData.get("specialty") ?? ""),
+            siret: String(formData.get("siret") ?? ""),
+            usedFroggymouth: String(formData.get("used-froggymouth") ?? "") as
+                | "yes"
+                | "no",
+            training: String(formData.get("training") ?? "") as "done" | "commit",
+            terms: formData.get("terms") ? "on" : "",
         };
+
         await registerUser(input);
     } catch (e: any) {
-        return { error: e.message ?? 'Erreur inconnue.' };
+        return { error: e.message ?? "Erreur inconnue." };
     }
 
-    toast.success("Votre compte a été créé. Vous pouvez vous connecter avec vos identifiants.")
-
-    redirect("/auth/login");
+    redirect("/dashboard");
 }
+
 
 export async function loginAction(
     _prev: AuthState,
@@ -43,7 +57,6 @@ export async function loginAction(
         };
         await loginUser(input);
     } catch (e: any) {
-        console.error(e);
         return { error: e.message ?? 'Identifiants invalides.' };
     }
 
@@ -55,19 +68,69 @@ export async function logoutAction() {
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (sessionId) {
-        // On supprime la session en base si elle existe
         try {
             await prisma.session.delete({
                 where: { id: sessionId },
             });
         } catch {
-            // ignorer si déjà supprimée
+            //
         }
     }
 
-    // On supprime le cookie
     cookieStore.delete(SESSION_COOKIE_NAME);
 
-    // Redirige vers la home
     redirect("/");
+}
+
+export async function resetPasswordAction(
+    _prev: AuthState,
+    formData: FormData,
+): Promise<AuthState> {
+    const token = String(formData.get("token") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+    if (!token) {
+        return { error: "Lien de réinitialisation invalide." };
+    }
+
+    if (!password || password.length < 8) {
+        return {
+            error: "Le mot de passe doit contenir au moins 8 caractères.",
+        };
+    }
+
+    if (password !== confirmPassword) {
+        return { error: "Les mots de passe ne correspondent pas." };
+    }
+
+    try {
+        const hash = await bcrypt.hash(password, 12);
+        await resetPassword(token, hash);
+    } catch (e: any) {
+        return {
+            error: e.message ?? "Impossible de réinitialiser le mot de passe.",
+        };
+    }
+
+    redirect("/auth/login");
+}
+
+export async function forgotPasswordAction(
+    _prev: AuthState,
+    formData: FormData
+): Promise<AuthState> {
+    const email = String(formData.get("email") ?? "").trim();
+
+    if (!email) {
+        return { error: "Veuillez renseigner votre adresse e-mail." };
+    }
+
+    try {
+        await requestPasswordReset(email);
+    } catch {
+        //
+    }
+
+    return {};
 }

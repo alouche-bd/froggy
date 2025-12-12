@@ -13,8 +13,7 @@ export function PatientForm({ token }: Props) {
         if (typeof window === "undefined") return;
 
         const ua = window.navigator.userAgent || "";
-        const isMobile =
-            /Mobi|Android|iPhone|iPad|iPod/i.test(ua); // simple mobile check
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
 
         setShowApplePay(isMobile);
     }, []);
@@ -34,34 +33,57 @@ export function PatientForm({ token }: Props) {
 
             {/* Infos perso */}
             <div id="personal-info" className="space-y-4">
-                <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Nom"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="text"
-                    name="firstName"
-                    placeholder="Prénom"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Adresse e-mail"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Téléphone"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="lastName"
+                        placeholder="Nom"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Prénom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="firstName"
+                        placeholder="Prénom"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Adresse e-mail <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Adresse e-mail"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Téléphone <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="phone"
+                        placeholder="Téléphone"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
             </div>
 
             {/* Options taille / livraison */}
@@ -69,7 +91,7 @@ export function PatientForm({ token }: Props) {
                 {/* Taille */}
                 <div id="size-choice">
                     <label className="text-sm font-medium text-gray-700">
-                        Choix de la taille :
+                        Choix de la taille <span className="text-red-500">*</span>
                     </label>
                     <div className="mt-2 flex items-center space-x-6">
                         <label className="inline-flex items-center">
@@ -106,7 +128,8 @@ export function PatientForm({ token }: Props) {
                 {/* Livraison */}
                 <div id="delivery-choice">
                     <label className="text-sm font-medium text-gray-700">
-                        Choisissez le mode de livraison :
+                        Choisissez le mode de livraison{" "}
+                        <span className="text-red-500">*</span>
                     </label>
                     <div className="mt-2 flex flex-col space-y-2">
                         <label className="inline-flex items-center">
@@ -118,7 +141,7 @@ export function PatientForm({ token }: Props) {
                                 required
                             />
                             <span className="ml-2 text-sm text-gray-600">
-                Livraison chez le praticien
+                Livraison au cabinet du thérapeute
               </span>
                         </label>
                         <label className="inline-flex items-center">
@@ -139,43 +162,80 @@ export function PatientForm({ token }: Props) {
             {/* Adresse postale */}
             <div id="address-section" className="space-y-4 pt-4">
                 <label className="text-sm font-medium text-gray-700">
-                    Adresse postale :
+                    Adresse postale
                 </label>
-                <input
-                    type="text"
-                    name="street"
-                    placeholder="Rue et numéro*"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="text"
-                    name="zip"
-                    placeholder="Code postal*"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="text"
-                    name="city"
-                    placeholder="Ville*"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
-                <input
-                    type="text"
-                    name="country"
-                    placeholder="Pays*"
-                    required
-                    className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
-                />
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="addressName"
+                        placeholder="Nom"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Rue et numéro <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="street"
+                        placeholder="Rue et numéro"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Code postal <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="zip"
+                        placeholder="Code postal"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Ville <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="city"
+                        placeholder="Ville"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Pays <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="country"
+                        placeholder="Pays"
+                        required
+                        className="w-full rounded-md border border-brand-border px-4 py-3 outline-none transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/50"
+                    />
+                </div>
             </div>
 
             <div className="text-right text-xs italic text-gray-500">
                 *Mentions obligatoires
             </div>
 
-            {/* Paiement */}
+            {/* Paiement (pas de champ de formulaire réel ici, donc pas d’asterisque) */}
             <div id="payment-section" className="space-y-4 pt-4">
                 <label className="text-sm font-medium text-gray-700">
                     Module sécurisé intégré
@@ -193,9 +253,7 @@ export function PatientForm({ token }: Props) {
                         type="button"
                         className="flex w-16 items-center justify-center rounded-md border border-gray-300 bg-white py-2 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
                     >
-            <span className="text-xs font-semibold text-gray-600">
-              CB
-            </span>
+                        <span className="text-xs font-semibold text-gray-600">CB</span>
                     </button>
                 </div>
             </div>

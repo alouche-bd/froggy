@@ -16,10 +16,23 @@ const registerSchema = z
         confirmPassword: z.string().min(8),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
+        professionalAddress: z.string().min(1),
+        postalCode: z.string().min(1),
+        city: z.string().min(1),
+        specialty: z.enum([
+            "orthophoniste",
+            "kinesitherapeute",
+            "osteopathe",
+            "autre",
+        ]),
+        siret: z.string().min(1),
+        usedFroggymouth: z.enum(["yes", "no"]),
+        training: z.enum(["done", "commit"]),
+        terms: z.literal("on"),
     })
-    .refine((d) => d.password === d.confirmPassword, {
-        message: 'Les mots de passe ne correspondent pas',
-        path: ['confirmPassword'],
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Les mots de passe ne correspondent pas.",
+        path: ["confirmPassword"],
     });
 
 const loginSchema = z.object({
@@ -49,8 +62,10 @@ async function createSession(userId: string) {
 export async function registerUser(input: RegisterInput) {
     const data = registerSchema.parse(input);
 
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) throw new Error('Un compte existe déjà avec cet e-mail.');
+    const existing = await prisma.user.findUnique({
+        where: { email: data.email },
+    });
+    if (existing) throw new Error("Un compte existe déjà avec cet e-mail.");
 
     const passwordHash = await bcrypt.hash(data.password, 12);
     const intakeToken = crypto.randomUUID();
@@ -61,6 +76,13 @@ export async function registerUser(input: RegisterInput) {
             passwordHash,
             firstName: data.firstName,
             lastName: data.lastName,
+            professionalAddress: data.professionalAddress,
+            postalCode: data.postalCode,
+            city: data.city,
+            specialty: data.specialty,
+            siret: data.siret,
+            usedFroggymouth: data.usedFroggymouth === "yes",
+            training: data.training,
             intakeToken,
         },
     });
@@ -68,6 +90,7 @@ export async function registerUser(input: RegisterInput) {
     await createSession(user.id);
     return user;
 }
+
 
 export async function loginUser(input: LoginInput) {
     const data = loginSchema.parse(input);

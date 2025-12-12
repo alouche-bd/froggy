@@ -81,7 +81,7 @@ export default function HomePage() {
                                 <div className="h-80 overflow-hidden rounded-2xl shadow-lg">
                                     <Image
                                         className="h-full w-full object-cover"
-                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/home_1.png"}
+                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/manza.jpg"}
                                         alt="Enfant tenant un dispositif"
                                         width={800}
                                         height={600}
@@ -118,7 +118,7 @@ export default function HomePage() {
                                 <div className="h-80 overflow-hidden rounded-2xl shadow-lg">
                                     <Image
                                         className="h-full w-full object-cover"
-                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/home_2.png"}
+                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/capture.png"}
                                         alt="Patiente tenant un dispositif"
                                         width={800}
                                         height={600}
@@ -151,7 +151,7 @@ export default function HomePage() {
                                 <div className="h-80 overflow-hidden rounded-2xl shadow-lg">
                                     <Image
                                         className="h-full w-full object-cover"
-                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/home_3.png"}
+                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/computer.jpg"}
                                         alt="Professionnel travaillant sur un ordinateur"
                                         width={800}
                                         height={600}
@@ -186,7 +186,7 @@ export default function HomePage() {
                                 <div className="h-80 overflow-hidden rounded-2xl shadow-lg">
                                     <Image
                                         className="h-full w-full object-cover"
-                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/home_4.png"}
+                                        src={process.env.NEXT_PUBLIC_CDN_URL + "/crowd.jpg"}
                                         alt="Audience lors d'un congrès"
                                         width={800}
                                         height={600}

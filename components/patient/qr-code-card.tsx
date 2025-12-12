@@ -7,6 +7,9 @@ type QrCodeCardProps = {
     intakeUrl: string;
 };
 
+const QR_PIXEL_SIZE = 1024; // high-res canvas for print/download
+const QR_DISPLAY_SIZE = 128; // visual size in the dashboard
+
 export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -14,6 +17,7 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // High-res PNG thanks to QR_PIXEL_SIZE
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = dataUrl;
@@ -30,23 +34,48 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
         if (!printWindow) return;
 
         printWindow.document.write(`
-    <html>
-      <head>
-        <title>Imprimer le QR Code</title>
-      </head>
-      <body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;">
-        <img src="${dataUrl}" style="max-width:100%;max-height:100%;" />
-      </body>
-    </html>
-  `);
+      <html>
+        <head>
+          <title>Imprimer le QR Code</title>
+          <style>
+            @page {
+              margin: 10mm;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              height: 100%;
+            }
+            body {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            /* Size the QR code to fit nicely on a single page */
+            img {
+              width: 60mm;
+              height: 60mm;
+              page-break-inside: avoid;
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${dataUrl}" />
+        </body>
+      </html>
+    `);
+
         printWindow.document.close();
 
         printWindow.onload = () => {
             printWindow.focus();
             printWindow.print();
+            // optional: auto-close after print
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
         };
     };
-
 
     return (
         <div
@@ -65,35 +94,40 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
                     <button
                         type="button"
                         onClick={handlePrint}
-                        className="block font-medium text-brand-green underline transition-colors hover:text-green-700"
+                        className="block cursor-pointer font-medium text-brand-green underline transition-colors hover:text-green-700"
                     >
                         Imprimer le QR Code
                     </button>
                     <button
                         type="button"
                         onClick={handleDownload}
-                        className="block font-medium text-brand-green underline transition-colors hover:text-green-700"
+                        className="block cursor-pointer font-medium text-brand-green underline transition-colors hover:text-green-700"
                     >
                         Télécharger le QR Code
                     </button>
-                    {/* Optionnel : afficher le lien brut */}
                     <a
                         href={intakeUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="block text-xs text-gray-500 break-all"
+                        className="block break-all text-xs text-gray-500"
                     >
                         {intakeUrl}
                     </a>
                 </div>
             </div>
+
             <div className="flex-shrink-0">
                 <div className="flex h-32 w-32 items-center justify-center rounded-md bg-white">
                     <QRCodeCanvas
                         value={intakeUrl}
-                        size={128}
+                        size={QR_PIXEL_SIZE} // high-res backing canvas
                         includeMargin
                         ref={canvasRef}
+                        // visually scaled down to match the design
+                        style={{
+                            width: `${QR_DISPLAY_SIZE}px`,
+                            height: `${QR_DISPLAY_SIZE}px`,
+                        }}
                     />
                 </div>
             </div>

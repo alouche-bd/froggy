@@ -31,13 +31,10 @@ export default async function PatientIntakePage({
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
     }
 
-    const lastName = capitalizeFirst(user.lastName || user.firstName);
-
-    const doctorDisplayName =
-        lastName
-            ? `Dr. ${lastName}`
-            : "votre praticien";
-
+    const doctorName =
+        user.lastName || user.firstName
+            ? `${(capitalizeFirst(user.firstName) ?? "").trim()} ${(capitalizeFirst(user.lastName) ?? "").trim()}`.trim()
+            : "";
 
     return (
         <main className="bg-brand-gray text-brand-text">
@@ -57,7 +54,7 @@ export default async function PatientIntakePage({
                                 className="text-4xl font-medium text-brand-green"
                             >
                                 Votre dispositif Froggy&nbsp;mouth a été prescrit par{" "}
-                                {doctorDisplayName}
+                                {doctorName}
                             </h1>
                         </div>
 

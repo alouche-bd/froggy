@@ -1,11 +1,12 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import Link from "next/link";
 import {
     loginAction,
     type AuthState,
 } from "@/app/actions/auth/action";
-import {useActionState} from "react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -13,7 +14,7 @@ function SubmitButton() {
         <button
             type="submit"
             disabled={pending}
-            className="inline-block cursor-pointer rounded-full bg-brand-green px-10 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-300 hover:bg-opacity-90"
+            className="inline-block cursor-pointer rounded-full bg-brand-green px-10 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-300 hover:bg-opacity-90 disabled:opacity-60"
         >
             {pending ? "Connexion en cours..." : "Se connecter"}
         </button>
@@ -29,7 +30,6 @@ export function LoginForm() {
     return (
         <main className="container mx-auto px-6 py-16">
             <div className="mx-auto max-w-3xl">
-                {/* Header, same spirit as register */}
                 <div className="mb-12 text-center">
                     <h1 className="mb-4 text-4xl font-light text-brand-green">
                         Se connecter à votre espace prescripteur
@@ -42,15 +42,8 @@ export function LoginForm() {
                     </p>
                 </div>
 
-                {/* Card */}
                 <div className="rounded-3xl bg-white p-8 shadow-sm border border-gray-100">
-                    <form
-                        onSubmit={(e) => {
-                            // allow native submit + server action
-                        }}
-                        action={formAction}
-                        className="space-y-8"
-                    >
+                    <form action={formAction} className="space-y-8">
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold text-brand-dark">
                                 Connexion
@@ -68,7 +61,8 @@ export function LoginForm() {
                                         required
                                     />
                                 </div>
-                                <div>
+
+                                <div className="space-y-1">
                                     <label htmlFor="password" className="sr-only">
                                         Mot de passe
                                     </label>
@@ -79,11 +73,18 @@ export function LoginForm() {
                                         placeholder="Mot de passe"
                                         required
                                     />
+                                    <div className="mt-1 text-right">
+                                        <Link
+                                            href="/auth/forgot-password"
+                                            className="text-xs text-brand-green underline hover:no-underline"
+                                        >
+                                            Mot de passe oublié ?
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </section>
 
-                        {/* Error from server (identifiants invalides, etc.) */}
                         {state.error && (
                             <p className="text-center text-xs text-red-500">
                                 {state.error}
@@ -96,12 +97,12 @@ export function LoginForm() {
 
                         <div className="pt-4 text-center text-xs text-gray-500">
                             Vous n&apos;avez pas encore de compte ?{" "}
-                            <a
+                            <Link
                                 href="/auth/register"
                                 className="text-brand-green underline hover:no-underline"
                             >
                                 Devenir prescripteur
-                            </a>
+                            </Link>
                         </div>
                     </form>
                 </div>

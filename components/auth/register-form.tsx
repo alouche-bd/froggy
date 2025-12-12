@@ -1,8 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { registerAction, type AuthState } from "../../app/actions/auth/action";
-import {useActionState} from "react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -10,7 +12,7 @@ function SubmitButton() {
         <button
             type="submit"
             disabled={pending}
-            className="inline-block cursor-pointer rounded-full bg-brand-green px-10 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-300 hover:bg-opacity-90"
+            className="inline-block cursor-pointer rounded-full bg-brand-green px-10 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-300 hover:bg-opacity-90 disabled:opacity-60"
         >
             {pending ? "Veuillez patienter..." : "Valider l'inscription"}
         </button>
@@ -23,13 +25,41 @@ export function RegisterForm() {
         {}
     );
 
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [clientError, setClientError] = useState<string | null>(null);
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        setClientError(null);
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+
+        const password = String(formData.get("password") ?? "");
+        const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+        if (password.length < 8) {
+            // ❌ front error → block submission (no pending)
+            event.preventDefault();
+            setClientError("Le mot de passe doit contenir au moins 8 caractères.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            // ❌ front error → block submission (no pending)
+            event.preventDefault();
+            setClientError("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
+        // ✅ no preventDefault => React will run `formAction` via the `action` prop
+        // and manage pending correctly. We don't call formAction() manually.
+    };
+
     return (
         <main id="main-content" className="container mx-auto px-6 py-16">
-            <div
-                id="registration-form-container"
-                className="mx-auto max-w-3xl"
-            >
-                {/* Header identical to your HTML */}
+            <div id="registration-form-container" className="mx-auto max-w-3xl">
+                {/* Header */}
                 <div id="form-header" className="mb-12 text-center">
                     <h1 className="mb-4 text-4xl font-light text-brand-green">
                         Devenir prescripteur Froggymouth
@@ -45,7 +75,8 @@ export function RegisterForm() {
                 {/* FORM */}
                 <form
                     id="registration-form"
-                    action={formAction}
+                    action={formAction}        // ✅ React/Next will call the server action
+                    onSubmit={handleSubmit}   // ✅ we only preventDefault on front errors
                     className="space-y-10"
                 >
                     {/* 1. Compte pro */}
@@ -55,10 +86,12 @@ export function RegisterForm() {
                         </h2>
                         <div className="space-y-4">
                             <div>
-                                <label htmlFor="email-account" className="sr-only">
-                                    Adresse e-mail
+                                <label
+                                    htmlFor="email-account"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
+                                >
+                                    Adresse e-mail <span className="text-red-500">*</span>
                                 </label>
-                                {/* backend expects name="email" */}
                                 <input
                                     type="email"
                                     id="email-account"
@@ -67,52 +100,97 @@ export function RegisterForm() {
                                     required
                                 />
                             </div>
+
+                            {/* Mot de passe avec eye icon */}
                             <div>
-                                <label htmlFor="password" className="sr-only">
-                                    Mot de passe
+                                <label
+                                    htmlFor="password"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
+                                >
+                                    Mot de passe <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    placeholder="Mot de passe"
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={passwordVisible ? "text" : "password"}
+                                        id="password"
+                                        name="password"
+                                        placeholder="Mot de passe"
+                                        minLength={8}
+                                        required
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPasswordVisible((v) => !v)}
+                                        className="absolute cursor-pointer outline-0 inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                                        aria-label={
+                                            passwordVisible
+                                                ? "Masquer le mot de passe"
+                                                : "Afficher le mot de passe"
+                                        }
+                                    >
+                                        {passwordVisible ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                                    </button>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Le mot de passe doit contenir au moins 8 caractères.
+                                </p>
                             </div>
-                            {/* NEW: confirm password, same style */}
+
+                            {/* Confirmation mot de passe avec eye icon */}
                             <div>
                                 <label
                                     htmlFor="confirm-password"
-                                    className="sr-only"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
                                 >
-                                    Confirmer le mot de passe
+                                    Confirmer le mot de passe{" "}
+                                    <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="password"
-                                    id="confirm-password"
-                                    name="confirmPassword"
-                                    placeholder="Confirmer le mot de passe"
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={confirmVisible ? "text" : "password"}
+                                        id="confirm-password"
+                                        name="confirmPassword"
+                                        placeholder="Confirmer le mot de passe"
+                                        minLength={8}
+                                        required
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmVisible((v) => !v)}
+                                        className="absolute cursor-pointer outline-0 inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                                        aria-label={
+                                            confirmVisible
+                                                ? "Masquer la confirmation"
+                                                : "Afficher la confirmation"
+                                        }
+                                    >
+                                        {confirmVisible ? (
+                                            <FiEyeOff size={18} />
+                                        ) : (
+                                            <FiEye size={18} />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>
 
                     {/* 2. Infos pro */}
-                    <section
-                        id="step-2-professional-info"
-                        className="space-y-4"
-                    >
+                    <section id="step-2-professional-info" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
                             2. Renseignez vos informations professionnelles
                         </h2>
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label htmlFor="last-name" className="sr-only">
-                                        Nom
+                                    <label
+                                        htmlFor="last-name"
+                                        className="mb-1 block text-sm font-medium text-brand-dark"
+                                    >
+                                        Nom <span className="text-red-500">*</span>
                                     </label>
-                                    {/* backend expects name="lastName" */}
                                     <input
                                         type="text"
                                         id="last-name"
@@ -122,10 +200,12 @@ export function RegisterForm() {
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="first-name" className="sr-only">
-                                        Prénom
+                                    <label
+                                        htmlFor="first-name"
+                                        className="mb-1 block text-sm font-medium text-brand-dark"
+                                    >
+                                        Prénom <span className="text-red-500">*</span>
                                     </label>
-                                    {/* backend expects name="firstName" */}
                                     <input
                                         type="text"
                                         id="first-name"
@@ -135,12 +215,13 @@ export function RegisterForm() {
                                     />
                                 </div>
                             </div>
+
                             <div>
                                 <label
                                     htmlFor="professional-address"
-                                    className="sr-only"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
                                 >
-                                    Adresse professionnelle
+                                    Adresse professionnelle <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -150,33 +231,71 @@ export function RegisterForm() {
                                     required
                                 />
                             </div>
-                            <div>
-                                <label htmlFor="email-pro" className="sr-only">
-                                    E-mail
-                                </label>
-                                <input
-                                    type="email"
-                                    id="email-pro"
-                                    name="email-pro"
-                                    placeholder="E-mail"
-                                    required
-                                />
+
+                            {/* Code postal + Ville */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label
+                                        htmlFor="postal-code"
+                                        className="mb-1 block text-sm font-medium text-brand-dark"
+                                    >
+                                        Code postal <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="postal-code"
+                                        name="postalCode"
+                                        placeholder="Code postal"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        htmlFor="city"
+                                        className="mb-1 block text-sm font-medium text-brand-dark"
+                                    >
+                                        Ville <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="city"
+                                        name="city"
+                                        placeholder="Ville"
+                                        required
+                                    />
+                                </div>
                             </div>
+
+                            {/* Spécialité as select */}
                             <div>
-                                <label htmlFor="specialty" className="sr-only">
-                                    Spécialité
+                                <label
+                                    htmlFor="specialty"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
+                                >
+                                    Spécialité <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     id="specialty"
                                     name="specialty"
-                                    placeholder="Spécialité"
                                     required
-                                />
+                                    className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/30"
+                                >
+                                    <option value="">Sélectionnez une spécialité</option>
+                                    <option value="orthophoniste">Orthophoniste</option>
+                                    <option value="kinesitherapeute">Kinésithérapeute</option>
+                                    <option value="osteopathe">Ostéopathe</option>
+                                    <option value="autre">Autre</option>
+                                </select>
                             </div>
+
+                            {/* ADELI / SIRET */}
                             <div>
-                                <label htmlFor="siret" className="sr-only">
-                                    Numéro ADELI ou SIRET
+                                <label
+                                    htmlFor="siret"
+                                    className="mb-1 block text-sm font-medium text-brand-dark"
+                                >
+                                    Numéro ADELI ou SIRET{" "}
+                                    <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -186,39 +305,39 @@ export function RegisterForm() {
                                     required
                                 />
                             </div>
-                            <div className="flex items-center space-x-6 pt-2">
-                                <p className="text-gray-700">
-                                    Avez-vous déjà utilisé le Froggymouth ?
+
+                            {/* Froggymouth déjà utilisé ? */}
+                            <div className="flex flex-col space-y-2 pt-2 md:flex-row md:items-center md:space-y-0 md:space-x-6">
+                                <p className="text-sm text-gray-700">
+                                    Avez-vous déjà utilisé le Froggymouth ?{" "}
+                                    <span className="text-red-500">*</span>
                                 </p>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        id="used-yes"
-                                        name="used-froggymouth"
-                                        value="yes"
-                                        className="form-radio h-4 w-4"
-                                    />
-                                    <label
-                                        htmlFor="used-yes"
-                                        className="text-gray-700"
-                                    >
-                                        Oui
-                                    </label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        id="used-no"
-                                        name="used-froggymouth"
-                                        value="no"
-                                        className="form-radio h-4 w-4"
-                                    />
-                                    <label
-                                        htmlFor="used-no"
-                                        className="text-gray-700"
-                                    >
-                                        Non
-                                    </label>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="radio"
+                                            id="used-yes"
+                                            name="used-froggymouth"
+                                            value="yes"
+                                            className="form-radio h-4 w-4"
+                                            required
+                                        />
+                                        <label htmlFor="used-yes" className="text-gray-700 text-sm">
+                                            Oui
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="radio"
+                                            id="used-no"
+                                            name="used-froggymouth"
+                                            value="no"
+                                            className="form-radio h-4 w-4"
+                                        />
+                                        <label htmlFor="used-no" className="text-gray-700 text-sm">
+                                            Non
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -235,13 +354,11 @@ export function RegisterForm() {
                                 id="terms"
                                 name="terms"
                                 className="form-checkbox h-5 w-5 rounded"
+                                required
                             />
-                            <label
-                                htmlFor="terms"
-                                className="text-gray-700"
-                            >
-                                J&apos;accepte les conditions générales
-                                d&apos;utilisation
+                            <label htmlFor="terms" className="text-gray-700 text-sm">
+                                J&apos;accepte les conditions générales d&apos;utilisation{" "}
+                                <span className="text-red-500">*</span>
                             </label>
                         </div>
                     </section>
@@ -249,7 +366,7 @@ export function RegisterForm() {
                     {/* 4. Formation */}
                     <section id="step-4-training" className="space-y-4">
                         <h2 className="text-xl font-semibold text-brand-dark">
-                            4. Formation prescripteur
+                            4. Formation prescripteur <span className="text-red-500">*</span>
                         </h2>
                         <div className="space-y-3">
                             <div className="flex items-start space-x-3">
@@ -259,11 +376,9 @@ export function RegisterForm() {
                                     name="training"
                                     value="done"
                                     className="form-radio mt-1 h-5 w-5"
+                                    required
                                 />
-                                <label
-                                    htmlFor="training-done"
-                                    className="text-gray-700"
-                                >
+                                <label htmlFor="training-done" className="text-gray-700 text-sm">
                                     J&apos;ai déjà suivi la formation Froggymouth
                                 </label>
                             </div>
@@ -277,13 +392,13 @@ export function RegisterForm() {
                                 />
                                 <label
                                     htmlFor="training-commit"
-                                    className="text-gray-700"
+                                    className="text-gray-700 text-sm"
                                 >
-                                    Je m&apos;engage à suivre la formation
-                                    prescripteur en ligne dans les 3 mois <br />
+                                    Je m&apos;engage à suivre la formation prescripteur en ligne
+                                    dans les 3 mois <br />
                                     <span className="text-sm text-gray-500">
-                    (Vous recevrez toutes les informations par
-                    e-mail après validation de votre inscription)
+                    (Vous recevrez toutes les informations par e-mail après
+                    validation de votre inscription)
                   </span>
                                 </label>
                             </div>
@@ -299,17 +414,17 @@ export function RegisterForm() {
                             <p className="text-gray-700">
                                 Après validation, vous aurez accès à :
                             </p>
-                            <ul className="mt-2 list-inside list-disc space-y-1 text-gray-700">
+                            <ul className="mt-2 list-inside list-disc space-y-1 text-gray-700 text-sm">
                                 <li>Un lien personnalisé</li>
                                 <li>Un QR code</li>
                             </ul>
                         </div>
                     </section>
 
-                    {/* Error from backend (including "Les mots de passe ne correspondent pas") */}
-                    {state.error && (
+                    {/* Errors: client OR API */}
+                    {(clientError || state.error) && (
                         <p className="text-center text-xs text-red-500">
-                            {state.error}
+                            {clientError ?? state.error}
                         </p>
                     )}
 

@@ -22,7 +22,7 @@ const configs: Record<BrandKey, BrandConfig> = {
     froggymouth: {
         key: 'froggymouth',
         name: 'Froggymouth',
-        logoUrl: process.env.NEXT_PUBLIC_CDN_URL + '/logo.png',
+        logoUrl: process.env.NEXT_PUBLIC_CDN_URL + '/logo_noir_gauche.png',
         texts: {
             heroTitle: 'L’allié de vos rééducations,',
             heroSubtitle: 'pour faciliter l’automatisation.',

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBrandConfig } from "@/lib/brand";
+import {getBrandConfig} from "@/lib/brand";
+import {FaFacebook, FaInstagram, FaYoutube} from "react-icons/fa";
 
 export async function Footer() {
     const brand = getBrandConfig();
@@ -16,8 +17,8 @@ export async function Footer() {
     return (
         <footer id="footer" className="bg-brand-dark text-white py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Top row: logo + links */}
-                <div className="flex flex-col items-start justify-between space-y-8 lg:flex-row lg:items-center lg:space-y-0">
+                <div
+                    className="flex flex-col items-start justify-between space-y-8 lg:flex-row lg:items-center lg:space-y-0">
                     <div id="footer-logo" className="flex items-center space-x-3">
                         <div className="relative h-12">
                             <Image
@@ -33,14 +34,15 @@ export async function Footer() {
                         id="footer-links"
                         className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-8"
                     >
-                        <Link
-                            href="#"
+                        <a
+                            href={process.env.NEXT_PUBLIC_CDN_URL + 'cgv.pdf'}
+                            target="_blank"
                             className="text-sm text-gray-300 transition-colors duration-300 hover:text-brand-green"
                         >
                             Conditions Générales de Vente
-                        </Link>
+                        </a>
                         <Link
-                            href="#"
+                            href="/legal-notice"
                             className="text-sm text-gray-300 transition-colors duration-300 hover:text-brand-green"
                         >
                             Mentions Légales
@@ -54,7 +56,6 @@ export async function Footer() {
                     </div>
                 </div>
 
-                {/* Divider + bottom row */}
                 <div
                     id="footer-divider"
                     className="mt-12 border-t border-gray-700 pt-8"
@@ -65,29 +66,30 @@ export async function Footer() {
                         </p>
 
                         <div id="footer-social" className="flex space-x-4">
-                            {/* Replace href="#" with real links when you have them */}
-                            <Link
-                                href="#"
+                            <a
+                                href="https://www.facebook.com/froggymouth.o"
+                                target="_blank"
                                 className="text-gray-400 transition-colors duration-300 hover:text-brand-green"
-                                aria-label="LinkedIn"
+                                aria-label="Facebook"
                             >
-                                {/* Simple inline icon placeholder */}
-                                <span className="text-xl">in</span>
-                            </Link>
-                            <Link
-                                href="#"
+                                <span className="text-xl"><FaFacebook/></span>
+                            </a>
+                            <a
+                                href="https://www.instagram.com/froggy.mouth/"
+                                target="_blank"
                                 className="text-gray-400 transition-colors duration-300 hover:text-brand-green"
                                 aria-label="X / Twitter"
                             >
-                                <span className="text-xl">𝕏</span>
-                            </Link>
-                            <Link
-                                href="#"
+                                <span className="text-xl"><FaInstagram/></span>
+                            </a>
+                            <a
+                                href="https://www.youtube.com/@froggymouth3297"
+                                target="_blank"
                                 className="text-gray-400 transition-colors duration-300 hover:text-brand-green"
                                 aria-label="Instagram"
                             >
-                                <span className="text-xl">◎</span>
-                            </Link>
+                                <span className="text-xl"><FaYoutube/></span>
+                            </a>
                         </div>
                     </div>
                 </div>
