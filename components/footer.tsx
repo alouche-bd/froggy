@@ -49,6 +49,7 @@ export async function Footer() {
                         </Link>
                         <a
                             href={process.env.NEXT_PUBLIC_CDN_URL + 'politique.pdf'}
+                            target="_blank"
                             className="text-sm text-gray-300 transition-colors duration-300 hover:text-brand-green"
                         >
                             Politique de Confidentialité
