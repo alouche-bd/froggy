@@ -15,6 +15,8 @@ export default async function ConfirmationPage({
     let patientName = "";
     let orderId = "";
     let createdAt = "";
+    let size = "";
+    let deliveryMode = ""
 
     if (session_id) {
         const session = await stripe.checkout.sessions.retrieve(session_id);
@@ -30,6 +32,8 @@ export default async function ConfirmationPage({
                 orderId = order.id;
                 createdAt = order.createdAt.toISOString().slice(0, 10);
                 patientName = order.patient.name;
+                size = order.size
+                deliveryMode = order.deliveryMode
 
                 if (
                     session.payment_status === "paid" &&
@@ -79,13 +83,13 @@ export default async function ConfirmationPage({
                   <span className="font-semibold">
                     Dispositif Froggymouth :
                   </span>{" "}
-                                    Taille (Small/Medium/Large)
+                                    {size}
                                 </li>
                                 <li>
                   <span className="font-semibold">
                     Mode de livraison :
                   </span>{" "}
-                                    Chez le praticien / À l’adresse indiquée
+                                    {deliveryMode === "PRACTITIONER" ? "Livraison au cabinet du thérapeute" : "A mon adresse"}
                                 </li>
                                 <li>
                   <span className="font-semibold">
@@ -101,17 +105,6 @@ export default async function ConfirmationPage({
                                 Informations complémentaires
                             </h2>
                             <ul className="space-y-1 text-gray-700">
-                                <li>
-                                    <span className="font-semibold">Suivi de commande :</span>{" "}
-                                    vous pouvez suivre l’état de votre commande en vous
-                                    connectant à votre espace client.
-                                </li>
-                                <li>
-                  <span className="font-semibold">
-                    Délai de livraison estimé :
-                  </span>{" "}
-                                    X jours ouvrés
-                                </li>
                                 <li>
                                     <span className="font-semibold">Contact :</span> pour toute
                                     question, contactez notre service client à{" "}

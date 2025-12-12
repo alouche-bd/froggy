@@ -15,7 +15,7 @@ function splitName(fullName: string): { lastName: string; firstName: string } {
     };
 }
 
-const formatDate = (value: string | Date) => {
+export const formatDate = (value: string | Date) => {
     const d = new Date(value);
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
