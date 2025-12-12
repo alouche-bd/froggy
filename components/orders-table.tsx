@@ -2,6 +2,7 @@ type OrderRow = {
     id: string;
     patientName: string;
     createdAt: string;
+    size: string;
 };
 
 function splitName(fullName: string): { lastName: string; firstName: string } {
@@ -13,6 +14,15 @@ function splitName(fullName: string): { lastName: string; firstName: string } {
         firstName: parts.slice(0, -1).join(" "),
     };
 }
+
+const formatDate = (value: string | Date) => {
+    const d = new Date(value);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+};
+
 
 export function OrdersTable({ orders }: { orders: OrderRow[] }) {
     return (
@@ -48,11 +58,10 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                                 key={order.id}
                                 className="border-b border-gray-200"
                             >
-                                <td className="p-4">{lastName}</td>
-                                <td className="p-4">{firstName}</td>
-                                <td className="p-4">{order.createdAt}</td>
-                                {/* TODO: Remplacez “—” par la vraie taille (Small/Medium/Large) quand le champ existera */}
-                                <td className="p-4">—</td>
+                                <td className="p-4 capitalize">{lastName}</td>
+                                <td className="p-4 capitalize">{firstName}</td>
+                                <td className="p-4">{formatDate(order.createdAt)}</td>
+                                <td className="p-4">{order.size}</td>
                             </tr>
                         );
                     })

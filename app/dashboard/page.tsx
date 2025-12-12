@@ -5,11 +5,18 @@ import {OrdersTable} from "@/components/orders-table";
 import {getOrdersForUser} from "@/lib/order";
 import {SendLinkForm} from "@/components/send-link-form";
 import {QrCodeCard} from "@/components/patient/qr-code-card";
+import {AdminDashboard} from "@/components/admin/admin-dashboard";
+import {getAdminDashboardData} from "@/lib/admin";
 
 
 export default async function DashboardPage() {
     const user = await requireUser();
     const brand = getBrandConfig();
+
+    if (user.role === "ADMIN") {
+        const data = await getAdminDashboardData();
+        return <AdminDashboard {...data} />;
+    }
 
     const { orders } = await getOrdersForUser(user.id, 1, 50);
 

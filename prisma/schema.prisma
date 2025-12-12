@@ -13,15 +13,15 @@ model User {
   firstName    String
   lastName     String
 
-  professionalAddress String  @default("")
-  postalCode          String  @default("")
-  city                String  @default("")
-  specialty           String  @default("autres")
-  siret               String  @default("")
-  usedFroggymouth     Boolean @default(false)
-  training            String  @default("commit")
-
-  intakeToken String @unique
+  professionalAddress String   @default("")
+  postalCode          String   @default("")
+  city                String   @default("")
+  specialty           String   @default("autres")
+  siret               String   @default("")
+  usedFroggymouth     Boolean  @default(false)
+  training            String   @default("commit")
+  role                UserRole @default(USER)
+  intakeToken         String   @unique
 
   sessions            Session[]
   orders              Order[]
@@ -99,6 +99,11 @@ enum DeliveryMode {
   ADDRESS
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model Order {
   id            String        @id @default(cuid())
   patientId     String
@@ -107,7 +112,7 @@ model Order {
   user          User          @relation(fields: [userId], references: [id])
   status        OrderStatus   @default(PENDING_PAYMENT)
   paymentStatus PaymentStatus @default(PENDING)
-  
+
   size         DeviceSize   @default(MEDIUM)
   deliveryMode DeliveryMode @default(PRACTITIONER)
 

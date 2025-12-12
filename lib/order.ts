@@ -121,6 +121,7 @@ export async function getOrdersForUser(
             patientName: o.patient.name,
             patientEmail: o.patient.email,
             status: o.status,
+            size: o.size,
             paymentStatus: o.paymentStatus,
             createdAt: o.createdAt.toISOString().slice(0, 10),
         })),
