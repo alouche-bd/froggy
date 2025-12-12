@@ -53,7 +53,7 @@ export default async function PatientIntakePage({
                                 id="main-title"
                                 className="text-4xl font-medium text-brand-green"
                             >
-                                Votre dispositif Froggy&nbsp;mouth a été prescrit par{" "}
+                                Votre dispositif Froggymouth a été prescrit par{" "}
                                 {doctorName}
                             </h1>
                         </div>

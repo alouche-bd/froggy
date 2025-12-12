@@ -7,17 +7,17 @@ export const runtime = "nodejs";
 export default async function ConfirmationPage({
                                                    searchParams,
                                                }: {
-    searchParams: { session_id?: string };
+    searchParams: Promise<{ session_id?: string }>;
 }) {
     const brand = getBrandConfig();
-    const sessionId = searchParams.session_id;
+    const {session_id} = await searchParams;
 
     let patientName = "";
     let orderId = "";
     let createdAt = "";
 
-    if (sessionId) {
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session_id) {
+        const session = await stripe.checkout.sessions.retrieve(session_id);
         const orderIdMeta = session.metadata?.orderId as string | undefined;
 
         if (orderIdMeta) {
@@ -50,12 +50,7 @@ export default async function ConfirmationPage({
         <main className="bg-gray-50">
             <div className="mx-auto max-w-5xl px-4 py-10">
                 <div className="rounded-3xl bg-white p-10 shadow-sm border border-gray-100 text-center space-y-6">
-                    <img
-                        src={brand.logoUrl}
-                        alt={brand.name}
-                        className="mx-auto h-9 w-auto"
-                    />
-                    <h1 className="text-2xl font-semibold text-brand">
+                    <h1 className="text-4xl font-medium text-brand-green">
                         Merci pour votre commande, {displayName} !
                     </h1>
                     <p className="text-sm text-gray-600">

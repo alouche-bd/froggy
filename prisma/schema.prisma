@@ -56,10 +56,19 @@ model Session {
 }
 
 model Patient {
-  id        String   @id @default(cuid())
-  name      String
+  id        String  @id @default(cuid())
+  name      String  @default("")
+  firstName String  @default("")
+  lastName  String  @default("")
   email     String
   phone     String?
+
+  addressName String @default("")
+  street      String @default("")
+  zip         String @default("")
+  city        String @default("")
+  country     String @default("")
+
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,19 +88,34 @@ enum PaymentStatus {
   FAILED
 }
 
+enum DeviceSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum DeliveryMode {
+  PRACTITIONER
+  ADDRESS
+}
+
 model Order {
-  id              String        @id @default(cuid())
-  patientId       String
-  patient         Patient       @relation(fields: [patientId], references: [id])
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  status          OrderStatus   @default(PENDING_PAYMENT)
-  paymentStatus   PaymentStatus @default(PENDING)
+  id            String        @id @default(cuid())
+  patientId     String
+  patient       Patient       @relation(fields: [patientId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  status        OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus PaymentStatus @default(PENDING)
+  
+  size         DeviceSize   @default(MEDIUM)
+  deliveryMode DeliveryMode @default(PRACTITIONER)
+
   amountCents     Int
-  stripeSessionId String?       @unique
+  stripeSessionId String?  @unique
   stripePaymentId String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([userId, createdAt])
 }

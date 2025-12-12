@@ -1,0 +1,19 @@
+-- CreateEnum
+CREATE TYPE "DeviceSize" AS ENUM ('SMALL', 'MEDIUM', 'LARGE');
+
+-- CreateEnum
+CREATE TYPE "DeliveryMode" AS ENUM ('PRACTITIONER', 'ADDRESS');
+
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "deliveryMode" "DeliveryMode" NOT NULL DEFAULT 'PRACTITIONER',
+ADD COLUMN     "size" "DeviceSize" NOT NULL DEFAULT 'MEDIUM';
+
+-- AlterTable
+ALTER TABLE "Patient" ADD COLUMN     "addressName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "city" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "country" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "firstName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "lastName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "street" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "zip" TEXT NOT NULL DEFAULT '',
+ALTER COLUMN "name" SET DEFAULT '';

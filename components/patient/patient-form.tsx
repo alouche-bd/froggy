@@ -1,29 +1,32 @@
+// app/patient/[token]/patient-form.tsx (or wherever it lives)
 "use client";
 
 import { useEffect, useState } from "react";
+import { useActionState } from "react";
+import {PatientFormState, submitPatientForm} from "@/app/actions/patient/[token]/action";
+
 
 type Props = {
     token: string;
 };
 
+const initialState: PatientFormState = {};
+
 export function PatientForm({ token }: Props) {
-    const [showApplePay, setShowApplePay] = useState(false);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        const ua = window.navigator.userAgent || "";
-        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
-
-        setShowApplePay(isMobile);
-    }, []);
+    const [state, formAction] = useActionState<PatientFormState, FormData>(
+        submitPatientForm,
+        initialState
+    );
 
     return (
         <form
             id="registration-form"
             className="mt-8 space-y-6 rounded-lg bg-white p-8 shadow-sm sm:p-10"
             method="post"
+            action={formAction}
         >
+            <input type="hidden" name="token" value={token} />
+
             <p
                 id="form-subtitle"
                 className="text-md text-center font-medium text-brand-text"
@@ -235,30 +238,41 @@ export function PatientForm({ token }: Props) {
                 *Mentions obligatoires
             </div>
 
-            {/* Paiement (pas de champ de formulaire réel ici, donc pas d’asterisque) */}
-            <div id="payment-section" className="space-y-4 pt-4">
-                <label className="text-sm font-medium text-gray-700">
-                    Module sécurisé intégré
-                </label>
-                <div className="flex items-center space-x-4">
-                    {showApplePay && (
-                        <button
-                            type="button"
-                            className="flex items-center justify-center rounded-md border border-gray-300 bg-black px-6 py-2 text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                        >
-                            <span className="text-sm font-semibold">Apple Pay</span>
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className="flex w-16 items-center justify-center rounded-md border border-gray-300 bg-white py-2 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
-                    >
-                        <span className="text-xs font-semibold text-gray-600">CB</span>
-                    </button>
-                </div>
+            <div className="mt-4 rounded-md bg-gray-50 p-4 text-sm text-gray-700">
+                Vous allez être facturé d&apos;un montant de <strong>49,50€</strong> pour le
+                dispositif et de <strong>6,50€</strong> pour les frais de port. Soit un
+                montant total de <strong>56€</strong>.
             </div>
 
-            {/* Submit */}
+            <div className="mt-4 flex items-start space-x-2">
+                <input
+                    type="checkbox"
+                    id="acceptCgv"
+                    name="acceptCgv"
+                    className="mt-1 h-4 w-4"
+                    required
+                />
+                <label
+                    htmlFor="acceptCgv"
+                    className="text-sm text-gray-700"
+                >
+                    J&apos;accepte les{" "}
+                    <a
+                        href={process.env.NEXT_PUBLIC_CDN_URL + 'cgv.pdf'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-brand-green underline hover:no-underline"
+                    >
+                        conditions générales de vente
+                    </a>{" "}
+                    <span className="text-red-500">*</span>
+                </label>
+            </div>
+
+            {state.error && (
+                <p className="text-center text-xs text-red-500">{state.error}</p>
+            )}
+
             <div id="submit-section" className="pt-6 mx-auto flex justify-center">
                 <button
                     type="submit"
