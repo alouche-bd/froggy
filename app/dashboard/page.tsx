@@ -33,7 +33,6 @@ export default async function DashboardPage() {
     return (
         <main className="bg-brand-gray-light text-gray-800">
             <div className="container mx-auto px-8 py-16">
-                {/* Welcome section */}
                 <section
                     id="welcome-section"
                     className="mb-12 text-center"
@@ -47,16 +46,12 @@ export default async function DashboardPage() {
                     </p>
                 </section>
 
-                {/* Tools: QR + email */}
                 <section
                     id="tools-section"
                     className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2"
                 >
-                    {/* QR code card */}
                     <QrCodeCard intakeUrl={intakeUrl} />
 
-
-                    {/* Email link card */}
                     <div
                         id="email-link-card"
                         className="rounded-xl bg-white p-8 shadow-md"
@@ -76,7 +71,6 @@ export default async function DashboardPage() {
                     </div>
                 </section>
 
-                {/* Patients dashboard */}
                 <section
                     id="patients-dashboard"
                     className="rounded-xl bg-white p-8 shadow-md"

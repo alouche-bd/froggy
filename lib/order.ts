@@ -1,8 +1,87 @@
 import Stripe from "stripe";
 import {IntakeFormData} from "@/app/actions/patient/[token]/action";
 import prisma from "@/lib/prisma";
+import {sendMailjetEmail} from "@/lib/mailjet";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+export async function sendPrescriberOrderNotificationEmail(opts: {
+    prescriberEmail: string;
+    prescriberName: string;
+    patientName: string;
+    size: string;
+    deliveryMode: "address" | "practitioner";
+    patientAddress: string;      // Adresse du patient (pour mode ADDRESS)
+    practitionerAddress: string; // Adresse du cabinet (pour mode PRACTITIONER)
+}) {
+    const safePrescriberName = opts.prescriberName || "Docteur";
+
+    const subject =
+        opts.deliveryMode === "address"
+            ? `Votre patient ${opts.patientName} a commandé un Froggymouth`
+            : `Commande Froggymouth de votre patient ${opts.patientName} – Livraison à votre cabinet`;
+
+    const addressLine =
+        opts.deliveryMode === "address"
+            ? opts.patientAddress
+            : opts.practitionerAddress;
+
+    const extraFooter =
+        opts.deliveryMode === "practitioner"
+            ? `
+        <p style="margin: 16px 0 0 0;">
+          En cas de besoin ou pour toute question, n’hésitez pas à nous contacter au
+          <strong>04 13 22 82 40</strong> ou par e-mail à
+          <a href="mailto:contact@froggymouth.com" style="color:#16a34a;text-decoration:underline;">
+            contact@froggymouth.com
+          </a>.
+        </p>
+      `
+            : "";
+
+    const html = `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #111827; line-height: 1.6;">
+      <p>Cher(e) ${safePrescriberName},</p>
+
+      <p>
+        Nous vous informons que votre patient, <strong>${opts.patientName}</strong>, a récemment commandé
+        un appareil Froggymouth via notre boutique en ligne${
+        opts.deliveryMode === "practitioner"
+            ? ", avec une livraison prévue à votre cabinet"
+            : ""
+    }.
+      </p>
+
+      <p><strong>Détails de la commande :</strong></p>
+      <ul style="list-style: disc; padding-left: 20px; margin-top: 0;">
+        <li><strong>Nom du patient :</strong> ${opts.patientName}</li>
+        <li><strong>Taille de l’appareil :</strong> ${opts.size}</li>
+        <li><strong>Adresse de livraison :</strong> ${addressLine.replace(/\n/g, "<br/>")}</li>
+      </ul>
+
+      <p>
+        Une brochure explicative destinée au patient est incluse dans le colis pour faciliter
+        l’utilisation de l’appareil.
+      </p>
+
+      <p>
+        Nous vous remercions pour votre confiance et restons à votre disposition pour toute question
+        ou assistance supplémentaire.
+      </p>
+
+      ${extraFooter}
+
+      <p style="margin-top: 24px;">Cordialement,<br/>L’équipe Froggymouth</p>
+    </div>
+  `;
+
+    await sendMailjetEmail({
+        toEmail: opts.prescriberEmail,
+        toName: safePrescriberName,
+        subject,
+        html,
+    });
+}
 
 export async function createIntakeOrderAndCheckout(data: IntakeFormData) {
     // trouver le praticien par token
@@ -91,6 +170,39 @@ export async function createIntakeOrderAndCheckout(data: IntakeFormData) {
         where: { id: order.id },
         data: { stripeSessionId: session.id },
     });
+
+    const prescriberName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "votre praticien";
+
+    const patientAddress = [
+        data.addressName,
+        data.street,
+        `${data.zip} ${data.city}`,
+        data.country,
+    ]
+        .filter(Boolean)
+        .join("\n");
+
+    const practitionerAddress = [
+        user.professionalAddress,
+        `${user.postalCode} ${user.city}`,
+    ]
+        .filter(Boolean)
+        .join("\n");
+
+    try {
+        await sendPrescriberOrderNotificationEmail({
+            prescriberEmail: user.email,
+            prescriberName,
+            patientName: patient.name || "Votre patient",
+            size: data.size,
+            deliveryMode: data.delivery === "practitioner" ? "practitioner" : "address",
+            patientAddress,
+            practitionerAddress,
+        });
+    } catch (e) {
+        console.error("Erreur envoi mail prescripteur", e);
+    }
+
 
     return session.url!;
 }
