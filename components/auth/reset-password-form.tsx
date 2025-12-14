@@ -31,6 +31,8 @@ export function ResetPasswordForm({ token }: Props) {
     useEffect(() => {
         if (!token) {
             setClientError("Lien de réinitialisation invalide.");
+        }else{
+            setClientError(null);
         }
     }, [token]);
 
