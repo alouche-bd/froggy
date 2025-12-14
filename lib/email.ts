@@ -10,8 +10,7 @@ export async function sendPasswordResetEmail(opts: { to: string; link: string })
     const brand = getBrandConfig();
 
     const html = `
-    <div style="font-family:system-ui,-apple-system,sans-serif;padding:24px;background-color:#f9fafb;">
-      <img src="${brand.logoUrl}" alt="${brand.name}" style="height:40px;margin-bottom:16px;" />
+   <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #111827; line-height: 1.6;">
       <h1 style="font-size:20px;margin:0 0 12px 0;color:#111827;">Réinitialisation de votre mot de passe</h1>
       <p style="margin:0 0 8px 0;color:#111827;">Bonjour,</p>
       <p style="margin:0 0 12px 0;color:#374151;">
