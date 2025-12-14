@@ -7,8 +7,8 @@ type QrCodeCardProps = {
     intakeUrl: string;
 };
 
-const QR_PIXEL_SIZE = 1024; // high-res canvas for print/download
-const QR_DISPLAY_SIZE = 128; // visual size in the dashboard
+const QR_PIXEL_SIZE = 1024;
+const QR_DISPLAY_SIZE = 128;
 
 export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -17,7 +17,6 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // High-res PNG thanks to QR_PIXEL_SIZE
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = dataUrl;
@@ -51,7 +50,7 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
               justify-content: center;
               align-items: center;
             }
-            /* Size the QR code to fit nicely on a single page */
+          
             img {
               width: 60mm;
               height: 60mm;
@@ -70,7 +69,6 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
         printWindow.onload = () => {
             printWindow.focus();
             printWindow.print();
-            // optional: auto-close after print
             printWindow.onafterprint = () => {
                 printWindow.close();
             };
@@ -105,14 +103,6 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
                     >
                         Télécharger le QR Code
                     </button>
-                    <a
-                        href={intakeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block break-all text-xs text-gray-500"
-                    >
-                        {intakeUrl}
-                    </a>
                 </div>
             </div>
 
@@ -120,10 +110,9 @@ export function QrCodeCard({ intakeUrl }: QrCodeCardProps) {
                 <div className="flex h-32 w-32 items-center justify-center rounded-md bg-white">
                     <QRCodeCanvas
                         value={intakeUrl}
-                        size={QR_PIXEL_SIZE} // high-res backing canvas
+                        size={QR_PIXEL_SIZE}
                         includeMargin
                         ref={canvasRef}
-                        // visually scaled down to match the design
                         style={{
                             width: `${QR_DISPLAY_SIZE}px`,
                             height: `${QR_DISPLAY_SIZE}px`,
