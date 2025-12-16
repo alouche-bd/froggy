@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
+import {sendGalaxyDeliveryAddress, sendGalaxyOrder} from "@/lib/galaxy";
 
 export const runtime = "nodejs";
-// Avoid any static optimization / caching
+
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     const sig = req.headers.get("stripe-signature");
-    const rawBody = await req.text(); // raw body is needed for signature check
+    const rawBody = await req.text();
 
     if (!sig) {
         return new NextResponse("Missing signature", { status: 400 });
@@ -42,6 +43,14 @@ export async function POST(req: NextRequest) {
                     session.id
                 );
             } else {
+                const order = await prisma.order.findUnique({
+                    where: { id: orderId },
+                    include: {
+                        patient: true,
+                        user: true,
+                    },
+                });
+
                 await prisma.order.update({
                     where: { id: orderId },
                     data: {
@@ -50,15 +59,25 @@ export async function POST(req: NextRequest) {
                         stripePaymentId: session.payment_intent as string,
                     },
                 });
+                try {
+                    if(order) {
+                        await sendGalaxyDeliveryAddress({order});
+                        await sendGalaxyOrder({order});
+                    }
+                } catch (err) {
+                    console.error(
+                        "Error sending to Galaxy for order",
+                        orderId,
+                        err
+                    );
+                }
             }
         }
-
-        // You can later handle more event types here if needed
 
         return NextResponse.json({ received: true });
     } catch (err: any) {
         console.error("Stripe webhook handler error:", err?.message || err);
-        // Return 200 so Stripe doesn't keep retrying forever if it's a DB bug
+
         return new NextResponse("Webhook handler error", { status: 200 });
     }
 }

@@ -11,8 +11,8 @@ export async function sendPrescriberOrderNotificationEmail(opts: {
     patientName: string;
     size: string;
     deliveryMode: "address" | "practitioner";
-    patientAddress: string;      // Adresse du patient (pour mode ADDRESS)
-    practitionerAddress: string; // Adresse du cabinet (pour mode PRACTITIONER)
+    patientAddress: string;
+    practitionerAddress: string;
 }) {
     const safePrescriberName = opts.prescriberName || "Docteur";
 
@@ -84,21 +84,17 @@ export async function sendPrescriberOrderNotificationEmail(opts: {
 }
 
 export async function createIntakeOrderAndCheckout(data: IntakeFormData) {
-    // trouver le praticien par token
     const user = await prisma.user.findUnique({
         where: { intakeToken: data.token },
     });
     if (!user) throw new Error("Lien praticien invalide ou expiré.");
 
-    // 2. Upsert-like logic manually (no need for email @unique)
     const existingPatient = await prisma.patient.findFirst({
         where: { email: data.email },
     });
 
     const patientData = {
-        // adjust to your actual Patient model fields:
         name: `${data.lastName.toUpperCase()} ${data.firstName}`,
-        // if you have these columns in Patient:
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
