@@ -163,6 +163,7 @@ export async function sendGalaxyOrder(opts: {
             totalTTC,
             typeOrder: "SON",
             wsuid: `SON-W-${order.id}`,
+            reference: order.id
         },
         orderLinesData: {
             line: [
