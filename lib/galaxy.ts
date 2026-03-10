@@ -1,7 +1,8 @@
 import type { Order, Patient, User } from "@prisma/client";
+import { logIntegration } from "@/lib/integration-log";
 
 const GALAXY_BASE_URL =
-    process.env.GALAXY_BASE_URL ?? "https://api-galaxy.biotech-dental.com";
+    process.env.GALAXY_BASE_URL ?? "";
 
 const GALAXY_APP_NAME = "E-DENTAL";
 const GALAXY_APP_VERSION = "v.20.7.8";
@@ -9,23 +10,21 @@ const GALAXY_BUSINESS_UNIT = "FROGGYMOUTH";
 const GALAXY_ENTITY = "SMILERS";
 const GALAXY_USER_DESIGNATION = "AL";
 
-const FROGGY_REFERENCES: Record<
-    string,
-    { designation: string; reference: string }
-> = {
-    small: {
-        designation: "Froggymouth® - S - LOT1800264-FM-V3-20-25",
-        reference: "Froggymouth® - S - LOT1800264-FM-V3-20-25",
-    },
-    medium: {
-        designation: "Froggymouth® - M - LOT-v2-16-24",
-        reference: "Froggymouth® - M - LOT-v2-16-24",
-    },
-    large: {
-        designation: "Froggymouth® - L - LOTfmv1-16-24",
-        reference: "Froggymouth® - L - LOTfmv1-16-24",
-    },
-};
+const FROGGY_REFERENCES: Record<string, { designation: string; reference: string }> =
+    {
+        small: {
+            designation: "Froggymouth® - S - LOT1800264-FM-V3-20-25",
+            reference: "Froggymouth® - S - LOT1800264-FM-V3-20-25",
+        },
+        medium: {
+            designation: "Froggymouth® - M - LOT-v2-16-24",
+            reference: "Froggymouth® - M - LOT-v2-16-24",
+        },
+        large: {
+            designation: "Froggymouth® - L - LOTfmv1-16-24",
+            reference: "Froggymouth® - L - LOTfmv1-16-24",
+        },
+    };
 
 function getGalaxyHeaders() {
     const headers: Record<string, string> = {
@@ -33,10 +32,66 @@ function getGalaxyHeaders() {
     };
 
     if (process.env.GALAXY_BEARER_TOKEN) {
-        headers["Authorization"] = `Bearer ${process.env.GALAXY_BEARER_TOKEN}`;
+        headers.Authorization = `Bearer ${process.env.GALAXY_BEARER_TOKEN}`;
     }
 
     return headers;
+}
+
+async function galaxyPost(opts: {
+    url: string;
+    action: string;
+    orderId: string;
+    payload: any;
+}) {
+    const startedAt = Date.now();
+
+    try {
+        const res = await fetch(opts.url, {
+            method: "POST",
+            headers: getGalaxyHeaders(),
+            body: JSON.stringify(opts.payload),
+        });
+
+        const bodyText = await res.text().catch(() => "");
+        const durationMs = Date.now() - startedAt;
+
+        await logIntegration({
+            provider: "GALAXY",
+            action: opts.action,
+            status: res.ok ? "SUCCESS" : "ERROR",
+            orderId: opts.orderId,
+            request: opts.payload,
+            response: {
+                ok: res.ok,
+                status: res.status,
+                durationMs,
+                body: bodyText,
+            },
+            error: res.ok ? undefined : `HTTP ${res.status}`,
+        });
+
+        if (!res.ok) {
+            console.error("Galaxy API failed:", opts.action, res.status, bodyText);
+        }
+
+        return res.ok;
+    } catch (err: any) {
+        const durationMs = Date.now() - startedAt;
+
+        await logIntegration({
+            provider: "GALAXY",
+            action: opts.action,
+            status: "ERROR",
+            orderId: opts.orderId,
+            request: opts.payload,
+            response: { durationMs },
+            error: err?.message ?? String(err),
+        });
+
+        console.error("Galaxy fetch threw:", opts.action, err);
+        throw err;
+    }
 }
 
 export async function sendGalaxyDeliveryAddress(opts: {
@@ -53,22 +108,26 @@ export async function sendGalaxyDeliveryAddress(opts: {
 
     const address = isToCabinet
         ? order.user.professionalAddress
-        : (order.patient as any).street;
+        : (order.patient as any).street ?? "";
 
-    const city = isToCabinet
-        ? order.user.city
-        : (order.patient as any).city;
-
+    const city = isToCabinet ? order.user.city : (order.patient as any).city ?? "";
     const zipCode = isToCabinet
         ? order.user.postalCode
-        : (order.patient as any).zip;
+        : (order.patient as any).zip ?? "";
 
-    const country =
-        (order.patient as any).country || "France";
+    const country = (order.patient as any).country || "France";
 
     const clientSocialReason = isToCabinet
         ? `${order.user.firstName} ${order.user.lastName}`.trim()
         : order.patient.name;
+
+    if (!address || !city || !zipCode) {
+        throw new Error(
+            `Missing address fields (address=${Boolean(address)} city=${Boolean(
+                city
+            )} zip=${Boolean(zipCode)})`
+        );
+    }
 
     const payload = {
         action: "create_address",
@@ -100,23 +159,12 @@ export async function sendGalaxyDeliveryAddress(opts: {
         },
     };
 
-    const res = await fetch(
-        `${GALAXY_BASE_URL}/send-delivery-address-in-queue`,
-        {
-            method: "POST",
-            headers: getGalaxyHeaders(),
-            body: JSON.stringify(payload),
-        }
-    );
-
-    if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        console.error(
-            "Galaxy send-delivery-address-in-queue failed:",
-            res.status,
-            text
-        );
-    }
+    await galaxyPost({
+        url: `${GALAXY_BASE_URL}/send-delivery-address-in-queue`,
+        action: "send-delivery-address-in-queue",
+        orderId: order.id,
+        payload,
+    });
 }
 
 export async function sendGalaxyOrder(opts: {
@@ -124,10 +172,12 @@ export async function sendGalaxyOrder(opts: {
 }) {
     const { order } = opts;
 
-    const sizeKey = ((order as any).size || "medium").toLowerCase();
+    const sizeKey = String((order as any).size || "medium").toLowerCase();
     const product = FROGGY_REFERENCES[sizeKey] ?? FROGGY_REFERENCES.medium;
+
     const expeditionDate = new Date().toISOString().slice(0, 10);
     const totalTTC = order.amountCents / 100;
+
     const shippingFee = 6.5;
     const unitPrice = totalTTC - shippingFee;
 
@@ -163,7 +213,7 @@ export async function sendGalaxyOrder(opts: {
             totalTTC,
             typeOrder: "SON",
             wsuid: `SON-W-${order.id}`,
-            reference: order.id
+            reference: `FROGGY ${order?.patient?.name}`
         },
         orderLinesData: {
             line: [
@@ -195,21 +245,10 @@ export async function sendGalaxyOrder(opts: {
         userDesignation: GALAXY_USER_DESIGNATION,
     };
 
-    const res = await fetch(
-        `${GALAXY_BASE_URL}/send-order-in-queue`,
-        {
-            method: "POST",
-            headers: getGalaxyHeaders(),
-            body: JSON.stringify(payload),
-        }
-    );
-
-    if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        console.error(
-            "Galaxy send-order-in-queue failed:",
-            res.status,
-            text
-        );
-    }
+    await galaxyPost({
+        url: `${GALAXY_BASE_URL}/send-order-in-queue`,
+        action: "send-order-in-queue",
+        orderId: order.id,
+        payload,
+    });
 }

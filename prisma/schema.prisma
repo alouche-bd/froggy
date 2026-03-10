@@ -6,6 +6,37 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum IntegrationProvider {
+  STRIPE
+  GALAXY
+}
+
+enum IntegrationStatus {
+  SUCCESS
+  ERROR
+  SKIPPED
+}
+
+model IntegrationLog {
+  id       String              @id @default(cuid())
+  provider IntegrationProvider
+  action   String
+  status   IntegrationStatus
+
+  orderId       String?
+  stripeEventId String?
+  attempt       Int     @default(1)
+
+  request  Json?
+  response Json?
+  error    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([provider, action, orderId])
+  @@index([createdAt])
+}
+
 model User {
   id           String @id @default(cuid())
   email        String @unique
