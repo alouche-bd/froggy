@@ -160,7 +160,7 @@ export async function sendGalaxyDeliveryAddress(opts: {
     };
 
     await galaxyPost({
-        url: `${GALAXY_BASE_URL}/send-delivery-address-in-queue`,
+        url: `${GALAXY_BASE_URL}/api/send-delivery-address-in-queue`,
         action: "send-delivery-address-in-queue",
         orderId: order.id,
         payload,
@@ -246,9 +246,10 @@ export async function sendGalaxyOrder(opts: {
     };
 
     await galaxyPost({
-        url: `${GALAXY_BASE_URL}/send-order-in-queue`,
+        url: `${GALAXY_BASE_URL}/api/send-order-in-queue`,
         action: "send-order-in-queue",
         orderId: order.id,
         payload,
     });
+
 }
