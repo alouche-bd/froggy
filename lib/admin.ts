@@ -25,6 +25,7 @@ export type AdminOrderRow = {
     createdAt: string;
     size: string;
     prescriber: string;
+    paymentStatus: string | null;
 };
 
 export async function getAdminDashboardData() {
@@ -69,6 +70,7 @@ export async function getAdminDashboardData() {
         prescriber: o.user.lastName + " " + o.user.firstName,
         createdAt: o.createdAt.toISOString(),
         size: (o as any).size ?? "—",
+        paymentStatus: o.paymentStatus ?? null,
     }));
 
     return { users: userRows, patients: patientRows, orders: orderRows };

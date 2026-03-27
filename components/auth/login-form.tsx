@@ -1,8 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import {
     loginAction,
     type AuthState,
@@ -26,6 +27,8 @@ export function LoginForm() {
         loginAction,
         {}
     );
+
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     return (
         <main className="container mx-auto px-6 py-16">
@@ -66,13 +69,32 @@ export function LoginForm() {
                                     <label htmlFor="password" className="sr-only">
                                         Mot de passe
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        name="password"
-                                        placeholder="Mot de passe"
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={passwordVisible ? "text" : "password"}
+                                            id="password"
+                                            name="password"
+                                            placeholder="Mot de passe"
+                                            required
+                                            className="pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setPasswordVisible((v) => !v)}
+                                            className="absolute inset-y-0 right-3 flex cursor-pointer items-center text-gray-500 outline-0 hover:text-gray-700"
+                                            aria-label={
+                                                passwordVisible
+                                                    ? "Masquer le mot de passe"
+                                                    : "Afficher le mot de passe"
+                                            }
+                                        >
+                                            {passwordVisible ? (
+                                                <FiEyeOff size={18} />
+                                            ) : (
+                                                <FiEye size={18} />
+                                            )}
+                                        </button>
+                                    </div>
                                     <div className="mt-1 text-right">
                                         <Link
                                             href="/auth/forgot-password"

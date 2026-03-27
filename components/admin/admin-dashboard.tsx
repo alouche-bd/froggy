@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { FaSort, FaSortUp, FaSortDown, FaFilter } from "react-icons/fa";
 import type {
     AdminUserRow,
     AdminPatientRow,
@@ -92,8 +93,137 @@ const splitName = (fullName: string) => {
     };
 };
 
+type SortConfig<T> = {
+    key: keyof T | "lastName" | "firstName"; // For patients and orders we use derived fields
+    direction: "asc" | "desc" | null;
+};
+
 export function AdminDashboard({ users, patients, orders }: Props) {
     const [activeTab, setActiveTab] = useState<TabId>("orders");
+    const [sortConfig, setSortConfig] = useState<Record<TabId, SortConfig<any>>>({
+        users: { key: "createdAt", direction: "desc" },
+        patients: { key: "createdAt", direction: "desc" },
+        orders: { key: "createdAt", direction: "desc" },
+    });
+
+    // Filtering states
+    const [showFilters, setShowFilters] = useState(false);
+    const [orderFilters, setOrderFilters] = useState({
+        paymentStatus: "",
+        size: "",
+    });
+
+    const requestSort = (tab: TabId, key: string) => {
+        let direction: "asc" | "desc" | null = "asc";
+        if (sortConfig[tab].key === key && sortConfig[tab].direction === "asc") {
+            direction = "desc";
+        } else if (sortConfig[tab].key === key && sortConfig[tab].direction === "desc") {
+            direction = null;
+        }
+        setSortConfig((prev) => ({ ...prev, [tab]: { key, direction } }));
+    };
+
+    const sortedUsers = useMemo(() => {
+        const { key, direction } = sortConfig.users;
+        if (!direction) return users;
+
+        return [...users].sort((a, b) => {
+            const valA = a[key as keyof AdminUserRow] ?? "";
+            const valB = b[key as keyof AdminUserRow] ?? "";
+
+            if (typeof valA === "string" && typeof valB === "string") {
+                return direction === "asc"
+                    ? valA.localeCompare(valB, "fr", { sensitivity: "accent" })
+                    : valB.localeCompare(valA, "fr", { sensitivity: "accent" });
+            }
+
+            if (valA < valB) return direction === "asc" ? -1 : 1;
+            if (valA > valB) return direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [users, sortConfig.users]);
+
+    const sortedPatients = useMemo(() => {
+        const { key, direction } = sortConfig.patients;
+        if (!direction) return patients;
+
+        return [...patients].sort((a, b) => {
+            let valA: any;
+            let valB: any;
+
+            if (key === "lastName") {
+                valA = splitName(a.name).lastName;
+                valB = splitName(b.name).lastName;
+            } else if (key === "firstName") {
+                valA = splitName(a.name).firstName;
+                valB = splitName(b.name).firstName;
+            } else {
+                valA = a[key as keyof AdminPatientRow] ?? "";
+                valB = b[key as keyof AdminPatientRow] ?? "";
+            }
+
+            if (typeof valA === "string" && typeof valB === "string") {
+                return direction === "asc"
+                    ? valA.localeCompare(valB, "fr", { sensitivity: "accent" })
+                    : valB.localeCompare(valA, "fr", { sensitivity: "accent" });
+            }
+
+            if (valA < valB) return direction === "asc" ? -1 : 1;
+            if (valA > valB) return direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [patients, sortConfig.patients]);
+
+    const sortedOrders = useMemo(() => {
+        let filtered = [...orders];
+
+        if (orderFilters.paymentStatus) {
+            filtered = filtered.filter((o) => o.paymentStatus === orderFilters.paymentStatus);
+        }
+        if (orderFilters.size) {
+            filtered = filtered.filter((o) => o.size === orderFilters.size);
+        }
+
+        const { key, direction } = sortConfig.orders;
+        if (!direction) return filtered;
+
+        return filtered.sort((a, b) => {
+            let valA: any;
+            let valB: any;
+
+            if (key === "lastName") {
+                valA = splitName(a.patientName).lastName;
+                valB = splitName(b.patientName).lastName;
+            } else if (key === "firstName") {
+                valA = splitName(a.patientName).firstName;
+                valB = splitName(b.patientName).firstName;
+            } else {
+                valA = a[key as keyof AdminOrderRow] ?? "";
+                valB = b[key as keyof AdminOrderRow] ?? "";
+            }
+
+            if (typeof valA === "string" && typeof valB === "string") {
+                return direction === "asc"
+                    ? valA.localeCompare(valB, "fr", { sensitivity: "accent" })
+                    : valB.localeCompare(valA, "fr", { sensitivity: "accent" });
+            }
+
+            if (valA < valB) return direction === "asc" ? -1 : 1;
+            if (valA > valB) return direction === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [orders, sortConfig.orders, orderFilters]);
+
+    const getSortIcon = (tab: TabId, key: string) => {
+        if (sortConfig[tab].key !== key || !sortConfig[tab].direction) {
+            return <FaSort className="ml-1 inline h-3 w-3 opacity-30 group-hover:opacity-100" />;
+        }
+        return sortConfig[tab].direction === "asc" ? (
+            <FaSortUp className="ml-1 inline h-3 w-3" />
+        ) : (
+            <FaSortDown className="ml-1 inline h-3 w-3" />
+        );
+    };
 
     const handleDownload = (tab: TabId) => {
         if (tab === "users") {
@@ -142,7 +272,7 @@ export function AdminDashboard({ users, patients, orders }: Props) {
 
         if (tab === "orders") {
             downloadCsv(
-                orders,
+                sortedOrders,
                 [
                     {
                         key: "patientName",
@@ -161,6 +291,16 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                         format: (v) => formatDate(v),
                     },
                     { key: "size", header: "Taille choisie" },
+                    {
+                        key: "paymentStatus",
+                        header: "Paiement",
+                        format: (v) => {
+                            if (v === "PAID") return "Payée";
+                            if (v === "PENDING") return "En attente";
+                            if (v === "FAILED") return "Échoué";
+                            return "Non payée";
+                        },
+                    },
                 ],
                 "commandes.csv"
             );
@@ -213,13 +353,96 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                             <h2 className="text-lg font-bold">Commandes</h2>
                         )}
 
-                        <button
-                            type="button"
-                            onClick={() => handleDownload(activeTab)}
-                            className="rounded-full bg-brand-green px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-opacity-90"
-                        >
-                            Télécharger (Excel)
-                        </button>
+                        <div className="flex gap-2">
+                            {activeTab === "orders" && (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold shadow-sm transition-colors ${
+                                            showFilters || orderFilters.paymentStatus || orderFilters.size
+                                                ? "bg-brand-green text-white border-brand-green"
+                                                : "bg-white text-gray-700 border-gray-200 hover:border-brand-green hover:text-brand-green"
+                                        }`}
+                                    >
+                                        <FaFilter /> Filtrer
+                                    </button>
+
+                                    {showFilters && (
+                                        <div className="absolute right-0 z-10 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-4 shadow-xl">
+                                            <div className="mb-4">
+                                                <label className="mb-1 block text-xs font-bold text-gray-700">
+                                                    Statut de paiement
+                                                </label>
+                                                <select
+                                                    className="w-full rounded border border-gray-300 p-2 text-xs"
+                                                    value={orderFilters.paymentStatus}
+                                                    onChange={(e) =>
+                                                        setOrderFilters((prev) => ({
+                                                            ...prev,
+                                                            paymentStatus: e.target.value,
+                                                        }))
+                                                    }
+                                                >
+                                                    <option value="">Tous</option>
+                                                    <option value="PAID">Payée</option>
+                                                    <option value="PENDING">En attente</option>
+                                                    <option value="FAILED">Échoué</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label className="mb-1 block text-xs font-bold text-gray-700">
+                                                    Taille
+                                                </label>
+                                                <select
+                                                    className="w-full rounded border border-gray-300 p-2 text-xs"
+                                                    value={orderFilters.size}
+                                                    onChange={(e) =>
+                                                        setOrderFilters((prev) => ({
+                                                            ...prev,
+                                                            size: e.target.value,
+                                                        }))
+                                                    }
+                                                >
+                                                    <option value="">Toutes</option>
+                                                    <option value="SMALL">SMALL</option>
+                                                    <option value="MEDIUM">MEDIUM</option>
+                                                    <option value="LARGE">LARGE</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="flex justify-between">
+                                                <button
+                                                    type="button"
+                                                    className="text-xs text-red-600 hover:underline"
+                                                    onClick={() =>
+                                                        setOrderFilters({ paymentStatus: "", size: "" })
+                                                    }
+                                                >
+                                                    Réinitialiser
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="text-xs font-bold text-brand-green hover:underline"
+                                                    onClick={() => setShowFilters(false)}
+                                                >
+                                                    Fermer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={() => handleDownload(activeTab)}
+                                className="rounded-full bg-brand-green px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-opacity-90"
+                            >
+                                Télécharger (Excel)
+                            </button>
+                        </div>
                     </div>
 
                     {activeTab === "users" && (
@@ -231,18 +454,46 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                 <table className="w-full text-left text-sm">
                                     <thead>
                                     <tr className="bg-brand-green text-white">
-                                        <th className="rounded-l-lg p-4 font-semibold">Nom</th>
-                                        <th className="p-4 font-semibold">Prénom</th>
-                                        <th className="p-4 font-semibold">E-mail</th>
-                                        <th className="p-4 font-semibold">Spécialité</th>
-                                        <th className="p-4 font-semibold">Ville</th>
-                                        <th className="rounded-r-lg p-4 font-semibold">
-                                            Créé le
+                                        <th
+                                            className="group cursor-pointer rounded-l-lg p-4 font-semibold"
+                                            onClick={() => requestSort("users", "lastName")}
+                                        >
+                                            Nom {getSortIcon("users", "lastName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("users", "firstName")}
+                                        >
+                                            Prénom {getSortIcon("users", "firstName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("users", "email")}
+                                        >
+                                            E-mail {getSortIcon("users", "email")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("users", "specialty")}
+                                        >
+                                            Spécialité {getSortIcon("users", "specialty")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("users", "city")}
+                                        >
+                                            Ville {getSortIcon("users", "city")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer rounded-r-lg p-4 font-semibold"
+                                            onClick={() => requestSort("users", "createdAt")}
+                                        >
+                                            Créé le {getSortIcon("users", "createdAt")}
                                         </th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {users.length === 0 ? (
+                                    {sortedUsers.length === 0 ? (
                                         <tr className="border-b border-gray-200">
                                             <td
                                                 colSpan={6}
@@ -252,7 +503,7 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                             </td>
                                         </tr>
                                     ) : (
-                                        users.map((u) => (
+                                        sortedUsers.map((u) => (
                                             <tr key={u.id} className="border-b border-gray-200">
                                                 <td className="p-4 capitalize">{u.lastName}</td>
                                                 <td className="p-4 capitalize">{u.firstName}</td>
@@ -278,17 +529,40 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                 <table className="w-full text-left text-sm">
                                     <thead>
                                     <tr className="bg-brand-green text-white">
-                                        <th className="rounded-l-lg p-4 font-semibold">Nom</th>
-                                        <th className="p-4 font-semibold">Prénom</th>
-                                        <th className="p-4 font-semibold">E-mail</th>
-                                        <th className="p-4 font-semibold">Téléphone</th>
-                                        <th className="rounded-r-lg p-4 font-semibold">
-                                            Ville
+                                        <th
+                                            className="group cursor-pointer rounded-l-lg p-4 font-semibold"
+                                            onClick={() => requestSort("patients", "lastName")}
+                                        >
+                                            Nom {getSortIcon("patients", "lastName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("patients", "firstName")}
+                                        >
+                                            Prénom {getSortIcon("patients", "firstName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("patients", "email")}
+                                        >
+                                            E-mail {getSortIcon("patients", "email")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("patients", "phone")}
+                                        >
+                                            Téléphone {getSortIcon("patients", "phone")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer rounded-r-lg p-4 font-semibold"
+                                            onClick={() => requestSort("patients", "city")}
+                                        >
+                                            Ville {getSortIcon("patients", "city")}
                                         </th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {patients.length === 0 ? (
+                                    {sortedPatients.length === 0 ? (
                                         <tr className="border-b border-gray-200">
                                             <td
                                                 colSpan={5}
@@ -298,7 +572,7 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                             </td>
                                         </tr>
                                     ) : (
-                                        patients.map((p) => {
+                                        sortedPatients.map((p) => {
                                             const { lastName, firstName } = splitName(p.name);
                                             return (
                                                 <tr
@@ -329,27 +603,56 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                 <table className="w-full text-left text-sm">
                                     <thead>
                                     <tr className="bg-brand-green text-white">
-                                        <th className="rounded-l-lg p-4 font-semibold">Nom</th>
-                                        <th className="p-4 font-semibold">Prénom</th>
-                                        <th className="p-4 font-semibold">Prescripteur</th>
-                                        <th className="p-4 font-semibold">Date de commande</th>
-                                        <th className="rounded-r-lg p-4 font-semibold">
-                                            Taille choisie
+                                        <th
+                                            className="group cursor-pointer rounded-l-lg p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "lastName")}
+                                        >
+                                            Nom {getSortIcon("orders", "lastName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "firstName")}
+                                        >
+                                            Prénom {getSortIcon("orders", "firstName")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "prescriber")}
+                                        >
+                                            Prescripteur {getSortIcon("orders", "prescriber")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "createdAt")}
+                                        >
+                                            Date de commande {getSortIcon("orders", "createdAt")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "size")}
+                                        >
+                                            Taille choisie {getSortIcon("orders", "size")}
+                                        </th>
+                                        <th
+                                            className="group cursor-pointer rounded-r-lg p-4 font-semibold"
+                                            onClick={() => requestSort("orders", "paymentStatus")}
+                                        >
+                                            Paiement {getSortIcon("orders", "paymentStatus")}
                                         </th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {orders.length === 0 ? (
+                                    {sortedOrders.length === 0 ? (
                                         <tr className="border-b border-gray-200">
                                             <td
-                                                colSpan={5}
+                                                colSpan={6}
                                                 className="p-4 text-center text-xs text-gray-500"
                                             >
                                                 Aucune commande pour le moment.
                                             </td>
                                         </tr>
                                     ) : (
-                                        orders.map((order) => {
+                                        sortedOrders.map((order) => {
                                             const { lastName, firstName } = splitName(
                                                 order.patientName
                                             );
@@ -367,6 +670,20 @@ export function AdminDashboard({ users, patients, orders }: Props) {
                                                         {formatDate(order.createdAt)}
                                                     </td>
                                                     <td className="p-4">{order.size}</td>
+                                                    <td
+                                                        className={`p-4 font-semibold ${
+                                                            order.paymentStatus === "PAID"
+                                                                ? "text-green-600"
+                                                                : "text-red-600"
+                                                        }`}
+                                                    >
+                                                        {(() => {
+                                                            if (order.paymentStatus === "PAID") return "Payée";
+                                                            if (order.paymentStatus === "PENDING") return "En attente";
+                                                            if (order.paymentStatus === "FAILED") return "Échoué";
+                                                            return "Non payée";
+                                                        })()}
+                                                    </td>
                                                 </tr>
                                             );
                                         })
