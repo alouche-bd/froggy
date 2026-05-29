@@ -1,17 +1,17 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Navbar } from "@/components/navbar";
 import { Poppins } from "next/font/google";
 import {Footer} from "@/components/footer";
 import Script from "next/script";
+import { FB_PIXEL_ID } from "@/lib/fpixel";
+import { FacebookPixelEvents } from "@/components/facebook-pixel-events";
 
 const poppins = Poppins({
     subsets: ["latin"],
     weight: ["400", "500", "600", "700"],
 });
-
-const FB_PIXEL_ID = "1574700224247284";
 
 export const metadata: Metadata = {
     title: "Inscription | Froggymouth",
@@ -46,6 +46,9 @@ export default async function RootLayout({
                 alt=""
             />
         </noscript>
+        <Suspense fallback={null}>
+            <FacebookPixelEvents />
+        </Suspense>
         <Navbar />
         {children}
         <Footer />

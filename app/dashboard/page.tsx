@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { requireUser } from "@/lib/auth";
 import { getBrandConfig } from "@/lib/brand";
 
+import {RegistrationComplete} from "@/components/auth/registration-complete";
 import {OrdersTable} from "@/components/orders-table";
 import {getOrdersForUser} from "@/lib/order";
 import {SendLinkForm} from "@/components/send-link-form";
@@ -32,6 +34,9 @@ export default async function DashboardPage() {
 
     return (
         <main className="bg-brand-gray-light text-gray-800">
+            <Suspense fallback={null}>
+                <RegistrationComplete />
+            </Suspense>
             <div className="container mx-auto px-8 py-16">
                 <section
                     id="welcome-section"

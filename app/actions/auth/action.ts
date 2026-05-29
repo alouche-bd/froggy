@@ -56,7 +56,7 @@ export async function registerAction(
         return { error: e.message ?? "Erreur inconnue." };
     }
 
-    redirect("/dashboard");
+    redirect("/dashboard?welcome=1");
 }
 
 
